@@ -12,7 +12,14 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         // $tasks = Task::all();
-        $tasks = $request->user()->tasks()->get();
+
+
+        if ($request->user()->role === 'admin') {
+            $tasks = \App\Models\Task::all();
+        } else {
+            $tasks = $request->user()->tasks()->get();
+        }
+
 
         return view('tasks.index', compact('tasks'));
     }
@@ -61,5 +68,40 @@ class TaskController extends Controller
         return redirect()
             ->route('tasks.index')
             ->with('success', 'Task updated successfully');
+    }
+
+
+    public function destroy(Task $task)
+    {
+        Gate::authorize('delete', $task);
+
+        $task->delete();
+
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Task deleted successfully!');
+    }
+
+
+    public function apiIndex(Request $request)
+    {
+        if ($request->user()->role === 'admin') {
+            return response()->json(\App\Models\Task::all());
+        }
+
+        return response()->json($request->user()->tasks()->get());
+    }
+
+    public function apiStore(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high',
+        ]);
+
+        $task = $request->user()->tasks()->create($validated);
+
+        return response()->json($task, 201);
     }
 }

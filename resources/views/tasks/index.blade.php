@@ -16,6 +16,14 @@
         <ul>
             @foreach ($tasks as $task)
             <a href="{{ route('tasks.edit', $task) }}">Edit</a>
+            <form action="{{ route('tasks.destroy', $task) }}" method="POST"
+                onsubmit="return confirm('Are you sure you want to delete this task?');">
+                @csrf
+                @method('DELETE')
+
+                <button type="submit">Delete</button>
+            </form>
+
                 <li>
                     <strong>{{ $task->title }}</strong>
                     — {{ $task->status }}
@@ -25,6 +33,7 @@
                         <p>{{ $task->description }}</p>
                     @endif
                 </li>
+                
             @endforeach
         </ul>
     @else
